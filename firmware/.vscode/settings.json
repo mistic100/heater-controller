@@ -1,0 +1,10 @@
+{
+	"window.title": "heater controller",
+    "files.associations": {
+        "functional": "cpp",
+        "cctype": "cpp",
+        "regex": "cpp",
+        "fstream": "cpp"
+    },
+    "liveServer.settings.root": "/data"
+}
