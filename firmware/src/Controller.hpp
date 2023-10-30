@@ -33,6 +33,11 @@ public:
         Zone zone2 = config->zone2();
         Mode mode2 = getMode(zone2, time);
         apply(PIN_FP2_POSITIVE, PIN_FP2_NEGATIVE, mode2);
+
+        info("Update water");
+        Water water = config->water();
+        Mode modeWater = getMode(water, time);
+        apply(PIN_WATER, modeWater);
     }
 
 private:
@@ -42,24 +47,39 @@ private:
 
         if (zone.mode == AUTO)
         {
-            int hour = time.tm_hour;
             bool isWeekend = time.tm_wday == 0 || time.tm_wday == 6;
             auto timetable = isWeekend ? zone.weekend : zone.weekday;
-
-            for (size_t i = timetable.size() - 1; i > 0; i--)
-            {
-                if (hour >= timetable[i].hour)
-                {
-                    debug("Scheduled mode", modeToStr(timetable[i].mode));
-                    return timetable[i].mode;
-                }
-            }
-
-            error("No suitable timetable found");
-            return ON;
+            return getMode(timetable, time.tm_hour);
         }
 
         return zone.mode;
+    }
+
+    const Mode getMode(const Water &water, const struct tm &time) const
+    {
+        debug("Mode", modeToStr(water.mode));
+
+        if (water.mode == AUTO)
+        {
+            return getMode(water.week, time.tm_hour);
+        }
+
+        return water.mode;
+    }
+
+    const Mode getMode(const std::vector<TimeItem> &timetable, int hour) const
+    {
+        for (size_t i = timetable.size() - 1; i > 0; i--)
+        {
+            if (hour >= timetable[i].hour)
+            {
+                debug("Scheduled mode", modeToStr(timetable[i].mode));
+                return timetable[i].mode;
+            }
+        }
+
+        error("No suitable timetable found");
+        return ON;
     }
 
     void apply(u8_t pin_positive, u8_t pin_negative, Mode mode)
@@ -86,6 +106,23 @@ private:
             error("Should not be there");
             digitalWrite(pin_positive, LOW);
             digitalWrite(pin_negative, LOW);
+            break;
+        }
+    }
+
+    void apply(u8_t pin, Mode mode)
+    {
+        switch (mode)
+        {
+        case ON:
+            digitalWrite(pin, HIGH);
+            break;
+        case OFF:
+            digitalWrite(pin, LOW);
+            break;
+        default:
+            error("Should not be there");
+            digitalWrite(pin, HIGH);
             break;
         }
     }

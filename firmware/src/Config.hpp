@@ -13,6 +13,7 @@ private:
     String _pass;
     Zone _zone1;
     Zone _zone2;
+    Water _water;
 
 public:
     Config() {}
@@ -37,6 +38,11 @@ public:
         return _zone2;
     }
 
+    const Water& water() const
+    {
+        return _water;
+    }
+
     bool save()
     {
         File file = SPIFFS.open(CONFIG_FILE, FILE_WRITE);
@@ -48,9 +54,11 @@ public:
 
         DynamicJsonDocument data(CONFIG_BUFFER);
         JsonObject zone1_data = data.createNestedObject("zone1");
-        serializeZone(_zone1, zone1_data);
+        serialize(_zone1, zone1_data);
         JsonObject zone2_data = data.createNestedObject("zone2");
-        serializeZone(_zone2, zone2_data);
+        serialize(_zone2, zone2_data);
+        JsonObject water_data = data.createNestedObject("water");
+        serialize(_water, water_data);
 
         size_t s = serializeJson(data, file);
         file.close();
@@ -88,8 +96,9 @@ public:
             }
             else
             {
-                deserializeZone(_zone1, data["zone1"]);
-                deserializeZone(_zone2, data["zone2"]);
+                deserialize(_zone1, data["zone1"]);
+                deserialize(_zone2, data["zone2"]);
+                deserialize(_water, data["water"]);
             }
 
             file.close();
@@ -97,11 +106,12 @@ public:
         }
     }
 
-    void set(JsonVariant &json)
+    void set(const JsonVariant &json)
     {
         JsonObjectConst data = json.as<JsonObjectConst>();
-        deserializeZone(_zone1, data["zone1"]);
-        deserializeZone(_zone2, data["zone2"]);
+        deserialize(_zone1, data["zone1"]);
+        deserialize(_zone2, data["zone2"]);
+        deserialize(_water, data["water"]);
         save();
     }
 
@@ -170,21 +180,29 @@ private:
     void init()
     {
         _zone1.mode = AUTO;
-        _zone1.weekday.push_back({0, ECO});
-        _zone1.weekend.push_back({0, ECO});
+        _zone1.weekday.push_back({0, OFF});
+        _zone1.weekend.push_back({0, OFF});
         _zone2.mode = AUTO;
-        _zone2.weekday.push_back({0, ECO});
-        _zone2.weekend.push_back({0, ECO});
+        _zone2.weekday.push_back({0, OFF});
+        _zone2.weekend.push_back({0, OFF});
+        _water.mode = AUTO;
+        _water.week.push_back({0, OFF});
     }
 
-    void deserializeZone(Zone &zone, const JsonObjectConst &data)
+    void deserialize(Zone &zone, const JsonObjectConst &data)
     {
         zone.mode = strToMode(data["mode"]);
-        deserializeTimeItems(zone.weekday, data["weekday"].as<JsonArrayConst>());
-        deserializeTimeItems(zone.weekend, data["weekend"].as<JsonArrayConst>());
+        deserialize(zone.weekday, data["weekday"].as<JsonArrayConst>());
+        deserialize(zone.weekend, data["weekend"].as<JsonArrayConst>());
     }
 
-    void deserializeTimeItems(std::vector<TimeItem> &items, const JsonArrayConst &data)
+    void deserialize(Water &water, const JsonObjectConst &data)
+    {
+        water.mode = strToMode(data["mode"]);
+        deserialize(water.week, data["week"].as<JsonArrayConst>());;
+    }
+
+    void deserialize(std::vector<TimeItem> &items, const JsonArrayConst &data)
     {
         items.clear();
         for (size_t i = 0; i < data.size(); i++)
@@ -193,16 +211,23 @@ private:
         }
     }
 
-    void serializeZone(const Zone &zone, JsonObject &data)
+    void serialize(const Zone &zone, JsonObject &data)
     {
         data["mode"] = modeToStr(zone.mode);
         JsonArray weekday_data = data.createNestedArray("weekday");
-        serializeTimeItems(zone.weekday, weekday_data);
+        serialize(zone.weekday, weekday_data);
         JsonArray weekend_data = data.createNestedArray("weekend");
-        serializeTimeItems(zone.weekend, weekend_data);
+        serialize(zone.weekend, weekend_data);
     }
 
-    void serializeTimeItems(const std::vector<TimeItem> &items, JsonArray &data)
+    void serialize(const Water &water, JsonObject &data)
+    {
+        data["mode"] = modeToStr(water.mode);
+        JsonArray week_data = data.createNestedArray("week");
+        serialize(water.week, week_data);
+    }
+
+    void serialize(const std::vector<TimeItem> &items, JsonArray &data)
     {
         for (uint i = 0; i < items.size(); i++)
         {

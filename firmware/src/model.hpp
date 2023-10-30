@@ -26,6 +26,12 @@ typedef struct
     std::vector<TimeItem> weekend;
 } Zone;
 
+typedef struct
+{
+    Mode mode;
+    std::vector<TimeItem> week;
+} Water;
+
 const String modeToStr(const Mode mode)
 {
     switch (mode)

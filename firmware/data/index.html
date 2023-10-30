@@ -24,10 +24,11 @@
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
-            <h-zone class="col-xl-6" title="Salon" id="zone1"></h-zone>
-            <h-zone class="col-xl-6" title="Chambres" id="zone2"></h-zone>
+            <h-zone class="col-xxl col-xl-6" title="Salon" id="zone1"></h-zone>
+            <h-zone class="col-xxl col-xl-6" title="Chambres" id="zone2"></h-zone>
+            <h-water class="col-xxl-3 col-md-6" title="Chauffe eau" id="water"></h-water>
         </div>
     </div>
 
@@ -95,6 +96,25 @@
         </div>
     </template>
 
+    <template id="water">
+        <div class="card shadow mb-3">
+            <div class="card-body">
+                <h4 class="card-title" id="title"></h4>
+
+                <div class="btn-group d-flex mb-3">
+                    <input type="radio" class="btn-check" name="mode" value="auto" id="mode-auto" checked>
+                    <label class="btn btn-outline-primary" for="mode-auto">Auto</label>
+                    <input type="radio" class="btn-check" name="mode" value="on" id="mode-on">
+                    <label class="btn btn-outline-primary" for="mode-on">Chauffe</label>
+                    <input type="radio" class="btn-check" name="mode" value="off" id="mode-off">
+                    <label class="btn btn-outline-primary" for="mode-off">Arrêt</label>
+                </div>
+
+                <h-calendar title="7j/7" id="week" water="true"></h-calendar>
+            </div>
+        </div>
+    </template>
+
     <script type="module">
         const CONFIG_URL = '/config.json';
 
@@ -120,7 +140,7 @@
         }
 
         class CalendarItem extends AbstractElement {
-            constructor(calendar, { hour, mode }) {
+            constructor(calendar, { hour, mode }, water) {
                 super('calendar-item');
                 this.style.order = `${hour}`
 
@@ -138,6 +158,12 @@
                 this.iHour.value = hour;
                 this.iMode.value = mode;
                 this.iHour.disabled = hour === 0;
+
+                if (water) {
+                    this.get('option[value=on]').innerText = 'Chauffe';
+                    this.get('option[value=eco]').remove();
+                    this.get('option[value=gel]').remove();
+                }
             }
 
             getValue() {
@@ -159,6 +185,7 @@
 
                 this.items = this.get('#items');
                 this.bars = this.get('#bars');
+                this.water = !!this.getAttribute('water');
 
                 this.on('click', '#btn-add', () => this.addItem());
             }
@@ -166,7 +193,7 @@
             addItem(hour, mode) {
                 hour = hour ?? Math.min(23, Math.max(-1, ...[...this.items.children].map(item => item.getValue().hour)) + 1);
                 mode = mode ?? 'on';
-                this.items.appendChild(new CalendarItem(this, { hour, mode }));
+                this.items.appendChild(new CalendarItem(this, { hour, mode }, this.water));
                 this.renderBars();
             }
 
@@ -226,9 +253,32 @@
             }
         }
 
+        class Water extends AbstractElement {
+            constructor() {
+                super('water');
+                this.get('#title').innerText = this.getAttribute('title');
+
+                this.week = this.get('#week');
+            }
+
+            getValue() {
+                return {
+                    mode: this.get('[name=mode]:checked').value,
+                    week: this.week.getValue(),
+                };
+            }
+
+            setValue({ mode, week }) {
+                this.get('[name=mode]:checked').checked = false;
+                this.get(`[name=mode][value=${mode}]`).checked = true;
+                this.week.setValue(week);
+            }
+        }
+
         customElements.define('h-calendar-item', CalendarItem);
         customElements.define('h-calendar', Calendar);
         customElements.define('h-zone', Zone);
+        customElements.define('h-water', Water);
 
         async function loadData() {
             try {
@@ -260,12 +310,14 @@
         (async () => {
             const zone1 = document.querySelector('#zone1');
             const zone2 = document.querySelector('#zone2');
+            const water = document.querySelector('#water');
             const btnSave = document.querySelector('#btn-save');
 
             btnSave.addEventListener('click', () => {
                 saveData({
                     zone1: zone1.getValue(),
                     zone2: zone2.getValue(),
+                    water: water.getValue(),
                 });
             });
 
@@ -273,6 +325,7 @@
 
             zone1.setValue(data.zone1);
             zone2.setValue(data.zone2);
+            water.setValue(data.water);
         })();
     </script>
 </body>
