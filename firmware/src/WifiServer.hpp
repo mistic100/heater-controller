@@ -157,9 +157,7 @@ private:
         });
 
         server.on("/config.json", HTTP_GET, [this](AsyncWebServerRequest *request) {
-            AsyncResponseStream *response = request->beginResponseStream("application/json");
-            config->get(*response);
-            request->send(response);
+            request->send(SPIFFS, CONFIG_FILE, "application/json");
         });
 
         server.addHandler(new AsyncCallbackJsonWebHandler("/config.json", [this](AsyncWebServerRequest *request, JsonVariant &json) {
