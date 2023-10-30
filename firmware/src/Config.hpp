@@ -9,22 +9,32 @@
 class Config
 {
 private:
-    String wifi_ssid;
-    String wifi_pass;
-    Zone zone1;
-    Zone zone2;
+    String _ssid;
+    String _pass;
+    Zone _zone1;
+    Zone _zone2;
 
 public:
     Config() {}
 
     const char *ssid() const
     {
-        return wifi_ssid.c_str();
+        return _ssid.c_str();
     }
 
     const char *pass() const
     {
-        return wifi_pass.c_str();
+        return _pass.c_str();
+    }
+
+    const Zone& zone1() const
+    {
+        return _zone1;
+    }
+
+    const Zone& zone2() const
+    {
+        return _zone2;
     }
 
     bool save()
@@ -32,27 +42,27 @@ public:
         File file = SPIFFS.open(CONFIG_FILE, FILE_WRITE);
         if (!file)
         {
-            Serial.println("Failed to open config file for writing!");
+            error("Failed to open config file for writing");
             return false;
         }
 
         DynamicJsonDocument data(CONFIG_BUFFER);
         JsonObject zone1_data = data.createNestedObject("zone1");
-        serializeZone(zone1, zone1_data);
+        serializeZone(_zone1, zone1_data);
         JsonObject zone2_data = data.createNestedObject("zone2");
-        serializeZone(zone2, zone2_data);
+        serializeZone(_zone2, zone2_data);
 
         size_t s = serializeJson(data, file);
         file.close();
 
         if (s == 0)
         {
-            Serial.println("Failed to write config file!");
+            error("Failed to write config file");
             return false;
         }
         else
         {
-            Serial.println("Saved config file");
+            info("Saved config file");
             return true;
         }
     }
@@ -62,36 +72,36 @@ public:
         File file = SPIFFS.open(CONFIG_FILE);
         if (!file || file.size() == 0)
         {
-            Serial.println("config file not found, creating a new one");
+            info("config file not found, creating a new one");
             init();
             return save();
         }
         else
         {
-            Serial.println("Read config file");
+            info("Read config file");
 
             DynamicJsonDocument data(CONFIG_BUFFER);
-            auto error = deserializeJson(data, file);
-            if (error)
+            auto nok = deserializeJson(data, file);
+            if (nok)
             {
-                Serial.println("config file invalid!");
+                error("Config file invalid");
             }
             else
             {
-                deserializeZone(zone1, data["zone1"]);
-                deserializeZone(zone2, data["zone2"]);
+                deserializeZone(_zone1, data["zone1"]);
+                deserializeZone(_zone2, data["zone2"]);
             }
 
             file.close();
-            return !error;
+            return !nok;
         }
     }
 
     void set(JsonVariant &json)
     {
         JsonObjectConst data = json.as<JsonObjectConst>();
-        deserializeZone(zone1, data["zone1"]);
-        deserializeZone(zone2, data["zone2"]);
+        deserializeZone(_zone1, data["zone1"]);
+        deserializeZone(_zone2, data["zone2"]);
         save();
     }
 
@@ -100,21 +110,19 @@ public:
         File file = SPIFFS.open(WIFI_CONFIG_FILE);
         if (!file || file.size() == 0)
         {
-            Serial.println("wifi config file not found!");
+            error("wifi config file not found");
             return false;
         }
 
-        Serial.println("Read wifi config file");
+        info("Read wifi config file");
 
-        if (file.available())
-            wifi_ssid = file.readStringUntil('\n');
-        if (file.available())
-            wifi_pass = file.readStringUntil('\n');
+        if (file.available()) _ssid = file.readStringUntil('\n');
+        if (file.available()) _pass = file.readStringUntil('\n');
         file.close();
 
-        if (wifi_ssid.isEmpty() || wifi_pass.isEmpty())
+        if (_ssid.isEmpty() || _pass.isEmpty())
         {
-            Serial.println("wifi config file empty!");
+            error("Wifi config file empty");
             return false;
         }
 
@@ -123,34 +131,37 @@ public:
 
     bool saveWifi(String &ssid, String &pass)
     {
-        wifi_ssid = ssid;
-        wifi_pass = pass;
+        if (ssid.isEmpty() || pass.isEmpty())
+        {
+            error("Invalid ssid/password");
+            return false;
+        }
+
+        _ssid = ssid;
+        _pass = pass;
 
         File file = SPIFFS.open(WIFI_CONFIG_FILE, FILE_WRITE);
         if (!file)
         {
-            Serial.println("Failed to open wifi config file for writing!");
+            error("Failed to open wifi config file for writing");
             return false;
         }
 
-        bool ok = file.print(wifi_ssid);
-        if (ok)
-            ok = file.print('\n');
-        if (ok)
-            ok = file.print(wifi_pass);
-        if (ok)
-            ok = file.print('\n');
+        bool ok = file.print(_ssid);
+        if (ok) ok = file.print('\n');
+        if (ok) ok = file.print(_pass);
+        if (ok) ok = file.print('\n');
 
         file.close();
 
         if (!ok)
         {
-            Serial.println("Failed to write to wifi config file!");
+            error("Failed to write to wifi config file");
             return false;
         }
         else
         {
-            Serial.println("Saved wifi config file");
+            info("Saved wifi config file");
             return true;
         }
     }
@@ -158,12 +169,12 @@ public:
 private:
     void init()
     {
-        zone1.mode = AUTO;
-        zone1.weekday.push_back({0, ECO});
-        zone1.weekend.push_back({0, ECO});
-        zone2.mode = AUTO;
-        zone2.weekday.push_back({0, ECO});
-        zone2.weekend.push_back({0, ECO});
+        _zone1.mode = AUTO;
+        _zone1.weekday.push_back({0, ECO});
+        _zone1.weekend.push_back({0, ECO});
+        _zone2.mode = AUTO;
+        _zone2.weekday.push_back({0, ECO});
+        _zone2.weekend.push_back({0, ECO});
     }
 
     void deserializeZone(Zone &zone, const JsonObjectConst &data)

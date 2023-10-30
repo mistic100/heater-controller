@@ -22,19 +22,17 @@ public:
 
     void initAP()
     {
-        Serial.println("Starting AP");
+        info("Starting AP");
 
         WiFi.mode(WIFI_AP);
         if (!WiFi.softAP(AP_SSID, NULL))
         {
-            Serial.println("Failed to start AP");
+            error("Failed to start AP");
         }
         else
         {
-            Serial.print("ssid: ");
-            Serial.println(AP_SSID);
-            Serial.print("ip: ");
-            Serial.println(WiFi.softAPIP());
+            debug("ssid", AP_SSID);
+            debug("IP", WiFi.softAPIP().toString());
 
             serveAP();
         }
@@ -42,7 +40,7 @@ public:
 
     void init()
     {
-        Serial.print("Connecting to WiFi");
+        info("Connecting to WiFi");
 
         WiFi.mode(WIFI_STA);
         WiFi.begin(config->ssid(), config->pass());
@@ -64,26 +62,27 @@ public:
             }
         }
 
-        Serial.println();
+        if (triesCount > 0)
+        {
+            Serial.println();
+        }
 
         if (WiFi.status() != WL_CONNECTED)
         {
-            Serial.println("Failed to connect!");
+            error("Failed to connect");
             initAP();
             return;
         }
 
-        Serial.print("ip: ");
-        Serial.println(WiFi.localIP());
+        debug("IP", WiFi.localIP().toString());
 
         if (!MDNS.begin(HOSTNAME))
         {
-            Serial.println("Failed to start mDNS!");
+            error("Failed to start mDNS");
         }
         else
         {
-            Serial.print("hostname: ");
-            Serial.println(HOSTNAME);
+            debug("Hostname", HOSTNAME);
         }
 
         serve();
@@ -99,10 +98,13 @@ public:
         struct tm timeinfo;
         if (!getLocalTime(&timeinfo))
         {
-            Serial.println("Failed to obtain time!");
-        } else {
-            Serial.print("current time: ");
-            Serial.println(&timeinfo, "%Y-%m-%d %H:%M:%S");
+            error("Failed to obtain time");
+        }
+        else
+        {
+            char buf[64];
+            size_t written = strftime(buf, 64, "%Y-%m-%d %H:%M:%S", &timeinfo);
+            debug("Current time", String(buf));
         }
     }
 
@@ -162,7 +164,6 @@ private:
 
         server.addHandler(new AsyncCallbackJsonWebHandler("/config.json", [this](AsyncWebServerRequest *request, JsonVariant &json) {
             config->set(json);
-
             request->send(200);
         }, CONFIG_BUFFER));
 

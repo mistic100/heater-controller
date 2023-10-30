@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <vector>
+#include "utils.hpp"
 
 typedef enum
 {
@@ -40,8 +41,7 @@ const String modeToStr(const Mode mode)
     case OFF:
         return "off";
     default:
-        Serial.print("Invalid mode: ");
-        Serial.println(mode);
+        error("Invalid mode");
         return "on";
     }
 }
@@ -68,7 +68,6 @@ const Mode strToMode(const char *mode)
     {
         return OFF;
     }
-    Serial.print("Invalid mode: ");
-    Serial.println(mode);
+    error("Invalid mode");
     return ON;
 }
