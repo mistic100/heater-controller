@@ -6,11 +6,20 @@
 #include "constants.h"
 #include "model.hpp"
 
+typedef struct
+{
+    bool valid;
+    String line1;
+    String line2;
+} Lines;
+
 class Config
 {
 private:
-    String _ssid;
-    String _pass;
+    String _wifi_ssid;
+    String _wifi_pass;
+    String _auth_user;
+    String _auth_pass;
     Zone _zone1;
     Zone _zone2;
     Water _water;
@@ -18,27 +27,37 @@ private:
 public:
     Config() {}
 
-    const char *ssid() const
+    const char *wifi_ssid() const
     {
-        return _ssid.c_str();
+        return _wifi_ssid.c_str();
     }
 
-    const char *pass() const
+    const char *wifi_pass() const
     {
-        return _pass.c_str();
+        return _wifi_pass.c_str();
     }
 
-    const Zone& zone1() const
+    const char *auth_user() const
+    {
+        return _auth_user.c_str();
+    }
+
+    const char *auth_pass() const
+    {
+        return _auth_pass.c_str();
+    }
+
+    const Zone &zone1() const
     {
         return _zone1;
     }
 
-    const Zone& zone2() const
+    const Zone &zone2() const
     {
         return _zone2;
     }
 
-    const Water& water() const
+    const Water &water() const
     {
         return _water;
     }
@@ -117,29 +136,35 @@ public:
 
     bool loadWifi()
     {
-        File file = SPIFFS.open(WIFI_CONFIG_FILE);
-        if (!file || file.size() == 0)
+        Lines res = readFileTwoLines(WIFI_CONFIG_FILE);
+        if (!res.valid)
         {
-            error("wifi config file not found");
             return false;
         }
-
-        info("Read wifi config file");
-
-        if (file.available()) _ssid = file.readStringUntil('\n');
-        if (file.available()) _pass = file.readStringUntil('\n');
-        file.close();
-
-        if (_ssid.isEmpty() || _pass.isEmpty())
+        else
         {
-            error("Wifi config file empty");
-            return false;
+            _wifi_ssid = res.line1;
+            _wifi_pass = res.line2;
+            return true;
         }
-
-        return true;
     }
 
-    bool saveWifi(String &ssid, String &pass)
+    bool loadAuth()
+    {
+        Lines res = readFileTwoLines(AUTH_CONFIG_FILE);
+        if (!res.valid)
+        {
+            return false;
+        }
+        else
+        {
+            _auth_user = res.line1;
+            _auth_pass = res.line2;
+            return true;
+        }
+    }
+
+    bool saveWifi(const String ssid, const String pass)
     {
         if (ssid.isEmpty() || pass.isEmpty())
         {
@@ -147,33 +172,24 @@ public:
             return false;
         }
 
-        _ssid = ssid;
-        _pass = pass;
+        _wifi_ssid = ssid;
+        _wifi_pass = pass;
 
-        File file = SPIFFS.open(WIFI_CONFIG_FILE, FILE_WRITE);
-        if (!file)
+        return writeFileTwoLines(WIFI_CONFIG_FILE, _wifi_ssid, _wifi_pass);
+    }
+
+    bool saveAuth(const String user, const String pass)
+    {
+        if (user.isEmpty() || pass.isEmpty())
         {
-            error("Failed to open wifi config file for writing");
+            error("Invalid user/password");
             return false;
         }
 
-        bool ok = file.print(_ssid);
-        if (ok) ok = file.print('\n');
-        if (ok) ok = file.print(_pass);
-        if (ok) ok = file.print('\n');
+        _auth_user = user;
+        _auth_pass = pass;
 
-        file.close();
-
-        if (!ok)
-        {
-            error("Failed to write to wifi config file");
-            return false;
-        }
-        else
-        {
-            info("Saved wifi config file");
-            return true;
-        }
+        return writeFileTwoLines(AUTH_CONFIG_FILE, _auth_user, _auth_pass);
     }
 
 private:
@@ -199,7 +215,7 @@ private:
     void deserialize(Water &water, const JsonObjectConst &data)
     {
         water.mode = strToMode(data["mode"]);
-        deserialize(water.week, data["week"].as<JsonArrayConst>());;
+        deserialize(water.week, data["week"].as<JsonArrayConst>());
     }
 
     void deserialize(std::vector<TimeItem> &items, const JsonArrayConst &data)
@@ -234,5 +250,58 @@ private:
             data[i]["hour"] = items[i].hour;
             data[i]["mode"] = modeToStr(items[i].mode);
         }
+    }
+
+    Lines readFileTwoLines(const char *path)
+    {
+        debug("Read file", path);
+
+        File file = SPIFFS.open(path);
+        if (!file || file.size() == 0)
+        {
+            info("File not found");
+            return {false};
+        }
+
+        String line1 = file.readStringUntil('\n');
+        String line2 = file.readStringUntil('\n');
+        file.close();
+
+        if (line1.isEmpty() || line2.isEmpty())
+        {
+            error("File is empty or invalid");
+            return {false};
+        }
+
+        return {true, line1, line2};
+    }
+
+    bool writeFileTwoLines(const char *path, const String &line1, const String &line2)
+    {
+        debug("Write file", path);
+
+        File file = SPIFFS.open(path, FILE_WRITE);
+        if (!file)
+        {
+            error("Failed to open file for writing");
+            return false;
+        }
+
+        bool ok = file.print(line1);
+        if (ok)
+            ok = file.print('\n');
+        if (ok)
+            ok = file.print(line2);
+        if (ok)
+            ok = file.print('\n');
+
+        file.close();
+
+        if (!ok)
+        {
+            error("Failed to write file");
+        }
+
+        return ok;
     }
 };

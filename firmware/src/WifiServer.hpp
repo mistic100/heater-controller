@@ -16,9 +16,14 @@ class WifiServer
 private:
     Config *config;
     AsyncWebServer server = AsyncWebServer(80);
+    std::function<void()> callback;
 
 public:
     WifiServer(Config *config) : config(config) {}
+
+    void onUpdate(std::function<void()> cb) {
+        callback = cb;
+    }
 
     void initAP()
     {
@@ -43,7 +48,7 @@ public:
         info("Connecting to WiFi");
 
         WiFi.mode(WIFI_STA);
-        WiFi.begin(config->ssid(), config->pass());
+        WiFi.begin(config->wifi_ssid(), config->wifi_pass());
 
         unsigned long currentMillis = millis();
         unsigned long previousMillis = currentMillis;
@@ -147,7 +152,12 @@ private:
 
     void serve()
     {
-        server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+        server.on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
+            if (!request->authenticate(config->auth_user(), config->auth_pass()))
+            {
+                return request->requestAuthentication();
+            }
+            
             request->send(SPIFFS, "/index.html", "text/html");
         });
 
@@ -159,12 +169,54 @@ private:
         });
 
         server.on("/config.json", HTTP_GET, [this](AsyncWebServerRequest *request) {
+            if (!request->authenticate(config->auth_user(), config->auth_pass()))
+            {
+                return request->requestAuthentication();
+            }
+            
             request->send(SPIFFS, CONFIG_FILE, "application/json");
         });
 
+        server.on("/settings/auth", HTTP_POST, [this](AsyncWebServerRequest *request) {
+            if (!request->authenticate(config->auth_user(), config->auth_pass()))
+            {
+                return request->requestAuthentication();
+            }
+            
+            String user;
+            String pass;
+
+            int params = request->params();
+            for (int i=0; i<params; i++)
+            {
+                AsyncWebParameter* p = request->getParam(i);
+                if (p->isPost())
+                {
+                    if (p->name() == "user") user = p->value().c_str();
+                    if (p->name() == "pass") pass = p->value().c_str();
+                }
+            }
+
+            if (config->saveAuth(user, pass))
+            {
+                request->redirect("/");
+            }
+            else
+            {
+                request->send(500, "text/plain", "Failed to store settings!");
+            }
+        });
+
         server.addHandler(new AsyncCallbackJsonWebHandler("/config.json", [this](AsyncWebServerRequest *request, JsonVariant &json) {
+            if (!request->authenticate(config->auth_user(), config->auth_pass()))
+            {
+                return request->requestAuthentication();
+            }
+            
             config->set(json);
             request->send(200);
+
+            if (callback) callback();
         }, CONFIG_BUFFER));
 
         server.begin();

@@ -9,6 +9,7 @@
 Config config;
 WifiServer server(&config);
 Controller ctrl(&config);
+bool ap_mode = false;
 
 void setup()
 {
@@ -22,8 +23,15 @@ void setup()
     return;
   }
 
+  if (!config.loadAuth())
+  {
+    info("Create default auth file");
+    config.saveAuth(AUTH_DEFAULT_USER, AUTH_DEFAULT_PASS);
+  }
+
   if (!config.loadWifi())
   {
+    ap_mode = true;
     server.initAP();
   }
   else
@@ -31,6 +39,10 @@ void setup()
     config.load();
     server.init();
     ctrl.update();
+
+    server.onUpdate([]() {
+      ctrl.update();
+    });
   }
 }
 
@@ -39,14 +51,16 @@ unsigned long previousMillis = 0;
 
 void loop()
 {
-  // TODO wifi reconnect
-  // TODO OTA
-  // TODO Auth
-
-  currentMillis = millis();
-  if (currentMillis - previousMillis >= 60000)
+  if (!ap_mode)
   {
-    ctrl.update();
-    previousMillis = currentMillis;
+    // TODO wifi reconnect
+    // TODO OTA
+
+    currentMillis = millis();
+    if (currentMillis - previousMillis >= UPDATE_INTERVAL)
+    {
+      ctrl.update();
+      previousMillis = currentMillis;
+    }
   }
 }
