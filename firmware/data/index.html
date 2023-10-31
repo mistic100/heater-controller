@@ -35,7 +35,7 @@
             <button class="btn-close" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body">
-            <form action="/settings/auth" method="POST" class="card">
+            <form action="/settings/auth" method="POST" class="card mb-5">
                 <div class="card-body">
                     <h5 class="card-title">Authentification</h5>
                     <div class="mb-3">
@@ -49,6 +49,9 @@
                     <button type="submit" class="btn btn-primary">Sauvegarder</button>
                 </div>
             </form>
+
+            <a href="/update" class="btn btn-secondary mb-2 w-100">OTA Update</a>
+            <a href="/config.json" download="config.json" class="btn btn-secondary mb-2 w-100">Export config</a>
         </div>
     </div>
 

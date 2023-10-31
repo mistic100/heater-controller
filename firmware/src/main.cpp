@@ -53,14 +53,13 @@ void loop()
 {
   if (!ap_mode)
   {
-    // TODO wifi reconnect
-    // TODO OTA
-
     currentMillis = millis();
     if (currentMillis - previousMillis >= UPDATE_INTERVAL)
     {
       ctrl.update();
       previousMillis = currentMillis;
     }
+
+    ElegantOTA.loop();
   }
 }

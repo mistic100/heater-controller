@@ -2,6 +2,7 @@
 
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
+#include <ElegantOTA.h>
 #include <AsyncTCP.h>
 #include <AsyncJson.h>
 #include <ArduinoJson.h>
@@ -90,8 +91,17 @@ public:
             debug("Hostname", HOSTNAME);
         }
 
-        serve();
         syncTime();
+
+        serve();
+
+        ElegantOTA.begin(&server, config->auth_user(), config->auth_pass());
+        ElegantOTA.onStart([]() {
+            info("Start OTA update");
+        });
+        ElegantOTA.onEnd([](bool success) {
+            success ? info("OTA update success") : error("OTA update failed");
+        });
     }
 
     void syncTime()
@@ -199,6 +209,7 @@ private:
 
             if (config->saveAuth(user, pass))
             {
+                ElegantOTA.setAuth(config->auth_user(), config->auth_pass());
                 request->redirect("/");
             }
             else
