@@ -19,14 +19,9 @@ private:
     Config *config;
     Controller *ctrl;
     AsyncWebServer server = AsyncWebServer(80);
-    std::function<void()> callback;
 
 public:
     WifiServer(Config *config, Controller *ctrl) : config(config), ctrl(ctrl) {}
-
-    void onUpdate(std::function<void()> cb) {
-        callback = cb;
-    }
 
     void initAP()
     {
@@ -240,7 +235,7 @@ private:
             config->set(json);
             request->send(200);
 
-            if (callback) callback();
+            ctrl->update();
         }, CONFIG_BUFFER));
 
         server.begin();

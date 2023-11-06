@@ -2,414 +2,414 @@
 <html>
 
 <head>
-    <title>Heater controller</title>
-    <meta charset="utf-8">
-    <link rel="icon" href="data:,">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Heater controller</title>
+	<meta charset="utf-8">
+	<link rel="icon" href="data:,">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        @import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
-        @import 'https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/solar/bootstrap.min.css';
-        @import 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css';
-    </style>
+	<style>
+		@import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
+		@import 'https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/solar/bootstrap.min.css';
+		@import 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css';
+	</style>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
 </head>
 
 <body>
-    <nav class="navbar bg-primary mb-3" data-bs-theme="dark">
-        <div class="container-fluid">
-            <h1 class="navbar-brand m-0">Heater controller</h1>
-            <div class="d-flex">
-                <button class="btn btn-dark" id="btn-save">Valider</button>
-                <button class="btn btn-link ms-2" data-bs-toggle="offcanvas" data-bs-target="#settings">
-                    <span class="bi-gear"></span>
-                </button>
-            </div>
-        </div>
-    </nav>
+	<nav class="navbar bg-primary mb-3" data-bs-theme="dark">
+		<div class="container-fluid">
+			<h1 class="navbar-brand m-0">Heater controller</h1>
+			<div class="d-flex">
+				<button class="btn btn-dark" id="btn-save">Valider</button>
+				<button class="btn btn-link ms-2" data-bs-toggle="offcanvas" data-bs-target="#settings">
+					<span class="bi-gear"></span>
+				</button>
+			</div>
+		</div>
+	</nav>
 
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="settings">
-        <div class="offcanvas-header">
-            <h4 class="offcanvas-title">Paramètres</h4>
-            <button class="btn-close" data-bs-dismiss="offcanvas"></button>
-        </div>
-        <div class="offcanvas-body">
-            <form action="/settings/auth" method="POST" class="card mb-5">
-                <div class="card-body">
-                    <h5 class="card-title">Authentification</h5>
-                    <div class="mb-3">
-                        <label for="user" class="form-label">Username</label>
-                        <input type="text" class="form-control form-control-sm" id="user" name="user">
-                    </div>
-                    <div class="mb-3">
-                        <label for="pass" class="form-label">Password</label>
-                        <input type="text" class="form-control form-control-sm" id="pass" name="pass">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Sauvegarder</button>
-                </div>
-            </form>
+	<div class="offcanvas offcanvas-end" tabindex="-1" id="settings">
+		<div class="offcanvas-header">
+			<h4 class="offcanvas-title">Paramètres</h4>
+			<button class="btn-close" data-bs-dismiss="offcanvas"></button>
+		</div>
+		<div class="offcanvas-body">
+			<form action="/settings/auth" method="POST" class="card mb-5">
+				<div class="card-body">
+					<h5 class="card-title">Authentification</h5>
+					<div class="mb-3">
+						<label for="user" class="form-label">Username</label>
+						<input type="text" class="form-control form-control-sm" id="user" name="user">
+					</div>
+					<div class="mb-3">
+						<label for="pass" class="form-label">Password</label>
+						<input type="text" class="form-control form-control-sm" id="pass" name="pass">
+					</div>
+					<button type="submit" class="btn btn-primary">Sauvegarder</button>
+				</div>
+			</form>
 
-            <a href="/update" class="btn btn-secondary mb-2 w-100">OTA Update</a>
-            <a href="/config.json" download="config.json" class="btn btn-secondary mb-2 w-100">Export config</a>
-        </div>
-    </div>
+			<a href="/update" class="btn btn-secondary mb-2 w-100">OTA Update</a>
+			<a href="/config.json" download="config.json" class="btn btn-secondary mb-2 w-100">Export config</a>
+		</div>
+	</div>
 
-    <div class="container-fluid">
-        <div class="row">
-            <h-zone class="col-xxl col-xl-6" title="Salon" id="zone1"></h-zone>
-            <h-zone class="col-xxl col-xl-6" title="Chambres" id="zone2"></h-zone>
-            <h-water class="col-xxl-3 col-md-6" title="Chauffe eau" id="water"></h-water>
-        </div>
-    </div>
+	<div class="container-fluid">
+		<div class="row">
+			<h-zone class="col-xxl col-xl-6" title="Salon" id="zone1"></h-zone>
+			<h-zone class="col-xxl col-xl-6" title="Chambres" id="zone2"></h-zone>
+			<h-water class="col-xxl-3 col-md-6" title="Chauffe eau" id="water"></h-water>
+		</div>
+	</div>
 
-    <template id="calendar-item">
-        <div class="input-group input-group-sm mb-1">
-            <input type="number" id="input-hour" min="1" max="23" step="1"
-                class="form-control form-control-sm flex-grow-0 text-end fw-semibold fs-6" style="width: 70px;">
-            <span class="input-group-text">H</span>
-            <select class="form-control form-control-sm" id="input-mode">
-                <option value="on">Confort</option>
-                <option value="eco">Éco</option>
-                <option value="gel">Hors gel</option>
-                <option value="off">Arrêt</option>
-            </select>
-            <button class="btn btn-sm btn-outline-warning" type="button" id="btn-del">
-                <i class="bi-x-lg"></i>
-            </button>
-        </div>
-    </template>
+	<template id="calendar-item">
+		<div class="input-group input-group-sm mb-1">
+			<input type="number" min="1" max="23" step="1" id="input-hour"
+				class="form-control form-control-sm flex-grow-0 text-end fw-semibold fs-6" style="width: 70px;">
+			<span class="input-group-text">H</span>
+			<select class="form-control form-control-sm" id="input-mode">
+				<option value="on">Confort</option>
+				<option value="eco">Éco</option>
+				<option value="gel">Hors gel</option>
+				<option value="off">Arrêt</option>
+			</select>
+			<button class="btn btn-sm btn-outline-warning" id="btn-del">
+				<i class="bi-x-lg"></i>
+			</button>
+		</div>
+	</template>
 
-    <template id="calendar">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title" id="title"></h5>
+	<template id="calendar">
+		<div class="card">
+			<div class="card-body">
+				<h5 class="card-title" id="title"></h5>
 
-                <div class="progress-stacked mb-2" id="bars"></div>
-                <div id="items" class="d-flex flex-column"></div>
+				<div class="progress-stacked mb-2" id="bars"></div>
+				<div class="d-flex flex-column" id="items"></div>
 
-                <button class="btn btn-sm btn-outline-primary w-100" type="button" id="btn-add">
-                    <i class="bi-plus-lg"></i>
-                </button>
-            </div>
-        </div>
-    </template>
+				<button class="btn btn-sm btn-outline-primary w-100" id="btn-add">
+					<i class="bi-plus-lg"></i>
+				</button>
+			</div>
+		</div>
+	</template>
 
-    <template id="zone">
-        <div class="card shadow mb-3">
-            <div class="card-body">
-                <h4 class="card-title" id="title"></h4>
-                <div class="badge rounded-pill text-bg-primary position-absolute" style="top: 1em; right: 1em;" id="status"></div>
+	<template id="zone">
+		<div class="card shadow mb-3">
+			<div class="card-body">
+				<h4 class="card-title" id="title"></h4>
+				<div class="badge rounded-pill text-bg-primary position-absolute" style="top: 1em; right: 1em;" id="status"></div>
 
-                <div class="btn-group d-flex mb-3">
-                    <input type="radio" class="btn-check" name="mode" value="auto" id="mode-auto" checked>
-                    <label class="btn btn-outline-primary" for="mode-auto">Auto</label>
-                    <input type="radio" class="btn-check" name="mode" value="on" id="mode-on">
-                    <label class="btn btn-outline-primary" for="mode-on">Confort</label>
-                    <input type="radio" class="btn-check" name="mode" value="eco" id="mode-eco">
-                    <label class="btn btn-outline-primary" for="mode-eco">Éco</label>
-                    <input type="radio" class="btn-check" name="mode" value="gel" id="mode-gel">
-                    <label class="btn btn-outline-primary" for="mode-gel">Hors gel</label>
-                    <input type="radio" class="btn-check" name="mode" value="off" id="mode-off">
-                    <label class="btn btn-outline-primary" for="mode-off">Arrêt</label>
-                </div>
+				<div class="btn-group d-flex mb-3">
+					<input type="radio" class="btn-check" name="mode" value="auto" id="mode-auto" checked>
+					<label class="btn btn-outline-primary" for="mode-auto">Auto</label>
+					<input type="radio" class="btn-check" name="mode" value="on" id="mode-on">
+					<label class="btn btn-outline-primary" for="mode-on">Confort</label>
+					<input type="radio" class="btn-check" name="mode" value="eco" id="mode-eco">
+					<label class="btn btn-outline-primary" for="mode-eco">Éco</label>
+					<input type="radio" class="btn-check" name="mode" value="gel" id="mode-gel">
+					<label class="btn btn-outline-primary" for="mode-gel">Hors gel</label>
+					<input type="radio" class="btn-check" name="mode" value="off" id="mode-off">
+					<label class="btn btn-outline-primary" for="mode-off">Arrêt</label>
+				</div>
 
-                <div class="container-fluid px-0">
-                    <div class="row g-2">
-                        <div class="col-md-6">
-                            <h-calendar title="Semaine" id="weekday"></h-calendar>
-                        </div>
-                        <div class="col-md-6">
-                            <h-calendar title="Weekend" id="weekend"></h-calendar>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </template>
+				<div class="container-fluid px-0">
+					<div class="row g-2">
+						<div class="col-md-6">
+							<h-calendar title="Semaine" id="weekday"></h-calendar>
+						</div>
+						<div class="col-md-6">
+							<h-calendar title="Weekend" id="weekend"></h-calendar>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</template>
 
-    <template id="water">
-        <div class="card shadow mb-3">
-            <div class="card-body">
-                <h4 class="card-title" id="title"></h4>
-                <div class="badge rounded-pill text-bg-primary position-absolute" style="top: 1em; right: 1em;" id="status"></div>
+	<template id="water">
+		<div class="card shadow mb-3">
+			<div class="card-body">
+				<h4 class="card-title" id="title"></h4>
+				<div class="badge rounded-pill text-bg-primary position-absolute" style="top: 1em; right: 1em;" id="status"></div>
 
-                <div class="btn-group d-flex mb-3">
-                    <input type="radio" class="btn-check" name="mode" value="auto" id="mode-auto" checked>
-                    <label class="btn btn-outline-primary" for="mode-auto">Auto</label>
-                    <input type="radio" class="btn-check" name="mode" value="on" id="mode-on">
-                    <label class="btn btn-outline-primary" for="mode-on">Chauffe</label>
-                    <input type="radio" class="btn-check" name="mode" value="off" id="mode-off">
-                    <label class="btn btn-outline-primary" for="mode-off">Arrêt</label>
-                </div>
+				<div class="btn-group d-flex mb-3">
+					<input type="radio" class="btn-check" name="mode" value="auto" id="mode-auto" checked>
+					<label class="btn btn-outline-primary" for="mode-auto">Auto</label>
+					<input type="radio" class="btn-check" name="mode" value="on" id="mode-on">
+					<label class="btn btn-outline-primary" for="mode-on">Chauffe</label>
+					<input type="radio" class="btn-check" name="mode" value="off" id="mode-off">
+					<label class="btn btn-outline-primary" for="mode-off">Arrêt</label>
+				</div>
 
-                <h-calendar title="7j/7" id="week" water="true"></h-calendar>
-            </div>
-        </div>
-    </template>
+				<h-calendar title="7j/7" id="week" water="true"></h-calendar>
+			</div>
+		</div>
+	</template>
 
-    <script type="module">
-        const CONFIG_URL = '/config.json';
-        const STATUS_URL = '/status.json';
+	<script type="module">
+		const CONFIG_URL = '/config.json';
+		const STATUS_URL = '/status.json';
 
-        class AbstractElement extends HTMLElement {
-            constructor(templateId) {
-                super();
-                this.shadow = this.attachShadow({ mode: 'open' });
+		class AbstractElement extends HTMLElement {
+			constructor(templateId) {
+				super();
+				this.shadow = this.attachShadow({ mode: 'open' });
 
-                const stylesheet = document.querySelector('style');
-                this.shadow.appendChild(document.importNode(stylesheet, true));
+				const stylesheet = document.querySelector('style');
+				this.shadow.appendChild(document.importNode(stylesheet, true));
 
-                const template = document.querySelector(`template#${templateId}`);
-                this.shadow.appendChild(document.importNode(template.content, true));
-            }
+				const template = document.querySelector(`template#${templateId}`);
+				this.shadow.appendChild(document.importNode(template.content, true));
+			}
 
-            get(selector) {
-                return this.shadow.querySelector(selector);
-            }
+			get(selector) {
+				return this.shadow.querySelector(selector);
+			}
 
-            on(event, selector, cb) {
-                this.get(selector).addEventListener(event, cb);
-            }
-        }
+			on(event, selector, cb) {
+				this.get(selector).addEventListener(event, cb);
+			}
+		}
 
-        class CalendarItem extends AbstractElement {
-            constructor(calendar, { hour, mode }, water) {
-                super('calendar-item');
-                this.style.order = `${hour}`
+		class CalendarItem extends AbstractElement {
+			constructor(calendar, { hour, mode }, water) {
+				super('calendar-item');
+				this.style.order = `${hour}`
 
-                this.calendar = calendar;
-                this.iHour = this.get('#input-hour');
-                this.iMode = this.get('#input-mode');
+				this.calendar = calendar;
+				this.iHour = this.get('#input-hour');
+				this.iMode = this.get('#input-mode');
 
-                this.on('click', '#btn-del', () => this.calendar.removeItem(this));
-                this.on('change', '#input-hour', () => {
-                    this.style.order = `${this.iHour.value}`;
-                    this.calendar.renderBars();
-                });
-                this.on('change', '#input-mode', () => this.calendar.renderBars());
+				this.on('click', '#btn-del', () => this.calendar.removeItem(this));
+				this.on('change', '#input-hour', () => {
+					this.style.order = `${this.iHour.value}`;
+					this.calendar.renderBars();
+				});
+				this.on('change', '#input-mode', () => this.calendar.renderBars());
 
-                this.iHour.value = hour;
-                this.iMode.value = mode;
-                this.iHour.disabled = hour === 0;
+				this.iHour.value = hour;
+				this.iMode.value = mode;
+				this.iHour.disabled = hour === 0;
 
-                if (water) {
-                    this.get('option[value=on]').innerText = 'Chauffe';
-                    this.get('option[value=eco]').remove();
-                    this.get('option[value=gel]').remove();
-                }
-            }
+				if (water) {
+					this.get('option[value=on]').innerText = 'Chauffe';
+					this.get('option[value=eco]').remove();
+					this.get('option[value=gel]').remove();
+				}
+			}
 
-            getValue() {
-                return { hour: this.iHour.valueAsNumber, mode: this.iMode.value };
-            }
-        }
+			getValue() {
+				return { hour: this.iHour.valueAsNumber, mode: this.iMode.value };
+			}
+		}
 
-        class Calendar extends AbstractElement {
-            static COLORS = {
-                on: 'bg-warning',
-                eco: 'bg-primary',
-                gel: 'bg-info',
-                off: 'bg-secondary',
-            };
+		class Calendar extends AbstractElement {
+			static COLORS = {
+				on: 'bg-warning',
+				eco: 'bg-primary',
+				gel: 'bg-info',
+				off: 'bg-secondary',
+			};
 
-            constructor() {
-                super('calendar');
-                this.get('#title').innerText = this.getAttribute('title');
+			constructor() {
+				super('calendar');
+				this.get('#title').innerText = this.getAttribute('title');
 
-                this.items = this.get('#items');
-                this.bars = this.get('#bars');
-                this.water = !!this.getAttribute('water');
+				this.items = this.get('#items');
+				this.bars = this.get('#bars');
+				this.water = !!this.getAttribute('water');
 
-                this.on('click', '#btn-add', () => this.addItem());
-            }
+				this.on('click', '#btn-add', () => this.addItem());
+			}
 
-            addItem(hour, mode) {
-                hour = hour ?? Math.min(23, Math.max(-1, ...[...this.items.children].map(item => item.getValue().hour)) + 1);
-                mode = mode ?? 'on';
-                this.items.appendChild(new CalendarItem(this, { hour, mode }, this.water));
-                this.renderBars();
-            }
+			addItem(hour, mode) {
+				hour = hour ?? Math.min(23, Math.max(-1, ...[...this.items.children].map(item => item.getValue().hour)) + 1);
+				mode = mode ?? 'on';
+				this.items.appendChild(new CalendarItem(this, { hour, mode }, this.water));
+				this.renderBars();
+			}
 
-            removeItem(item) {
-                this.items.removeChild(item);
-                this.renderBars();
-            }
+			removeItem(item) {
+				this.items.removeChild(item);
+				this.renderBars();
+			}
 
-            getValue() {
-                return [...this.items.children].map(item => item.getValue()).sort((a, b) => a.hour - b.hour);
-            }
+			getValue() {
+				return [...this.items.children].map(item => item.getValue()).sort((a, b) => a.hour - b.hour);
+			}
 
-            setValue(value) {
-                while (this.items.firstChild) this.items.removeChild(this.items.firstChild);
-                value.forEach(({ hour, mode }) => this.addItem(parseInt(hour, 10), mode));
-                this.renderBars();
-            }
+			setValue(value) {
+				while (this.items.firstChild) this.items.removeChild(this.items.firstChild);
+				value.forEach(({ hour, mode }) => this.addItem(parseInt(hour, 10), mode));
+				this.renderBars();
+			}
 
-            renderBars() {
-                const value = this.getValue();
-                let html = '';
-                for (let i = 0; i < value.length; i++) {
-                    const start = value[i].hour;
-                    const end = i === value.length - 1 ? 24 : value[i + 1].hour;
-                    html += `
-                        <div class="progress" style="width: ${100 * (end - start) / 24}%">
-                            <div class="progress-bar ${i > 0 ? 'border-start' : ''} ${Calendar.COLORS[value[i].mode]}"></div>
-                        </div>
-                    `;
-                }
-                this.bars.innerHTML = html;
-            }
-        }
+			renderBars() {
+				const value = this.getValue();
+				let html = '';
+				for (let i = 0; i < value.length; i++) {
+					const start = value[i].hour;
+					const end = i === value.length - 1 ? 24 : value[i + 1].hour;
+					html += `
+<div class="progress" style="width: ${100 * (end - start) / 24}%">
+	<div class="progress-bar ${i > 0 ? 'border-start' : ''} ${Calendar.COLORS[value[i].mode]}"></div>
+</div>
+					`;
+				}
+				this.bars.innerHTML = html;
+			}
+		}
 
-        class Zone extends AbstractElement {
-            static LABELS = {
-                on: 'Confort',
-                eco: 'Éco',
-                gel: 'Hors gel',
-                off: 'Arrêt',
-            };
+		class Zone extends AbstractElement {
+			static LABELS = {
+				on: 'Confort',
+				eco: 'Éco',
+				gel: 'Hors gel',
+				off: 'Arrêt',
+			};
 
-            constructor() {
-                super('zone');
-                this.get('#title').innerText = this.getAttribute('title');
+			constructor() {
+				super('zone');
+				this.get('#title').innerText = this.getAttribute('title');
 
-                this.weekday = this.get('#weekday');
-                this.weekend = this.get('#weekend');
-            }
+				this.weekday = this.get('#weekday');
+				this.weekend = this.get('#weekend');
+			}
 
-            getValue() {
-                return {
-                    mode: this.get('[name=mode]:checked').value,
-                    weekday: this.weekday.getValue(),
-                    weekend: this.weekend.getValue(),
-                };
-            }
+			getValue() {
+				return {
+					mode: this.get('[name=mode]:checked').value,
+					weekday: this.weekday.getValue(),
+					weekend: this.weekend.getValue(),
+				};
+			}
 
-            setValue({ mode, weekday, weekend }) {
-                this.get('[name=mode]:checked').checked = false;
-                this.get(`[name=mode][value=${mode}]`).checked = true;
-                this.weekday.setValue(weekday);
-                this.weekend.setValue(weekend);
-            }
+			setValue({ mode, weekday, weekend }) {
+				this.get('[name=mode]:checked').checked = false;
+				this.get(`[name=mode][value=${mode}]`).checked = true;
+				this.weekday.setValue(weekday);
+				this.weekend.setValue(weekend);
+			}
 
-            setStatus(status) {
-                this.get('#status').innerText = Zone.LABELS[status];
-            }
-        }
+			setStatus(status) {
+				this.get('#status').innerText = Zone.LABELS[status];
+			}
+		}
 
-        class Water extends AbstractElement {
-            static LABELS = {
-                on: 'Chauffe',
-                off: 'Arrêt',
-            };
+		class Water extends AbstractElement {
+			static LABELS = {
+				on: 'Chauffe',
+				off: 'Arrêt',
+			};
 
-            constructor() {
-                super('water');
-                this.get('#title').innerText = this.getAttribute('title');
+			constructor() {
+				super('water');
+				this.get('#title').innerText = this.getAttribute('title');
 
-                this.week = this.get('#week');
-            }
+				this.week = this.get('#week');
+			}
 
-            getValue() {
-                return {
-                    mode: this.get('[name=mode]:checked').value,
-                    week: this.week.getValue(),
-                };
-            }
+			getValue() {
+				return {
+					mode: this.get('[name=mode]:checked').value,
+					week: this.week.getValue(),
+				};
+			}
 
-            setValue({ mode, week }) {
-                this.get('[name=mode]:checked').checked = false;
-                this.get(`[name=mode][value=${mode}]`).checked = true;
-                this.week.setValue(week);
-            }
+			setValue({ mode, week }) {
+				this.get('[name=mode]:checked').checked = false;
+				this.get(`[name=mode][value=${mode}]`).checked = true;
+				this.week.setValue(week);
+			}
 
-            setStatus(status) {
-                this.get('#status').innerText = Water.LABELS[status];
-            }
-        }
+			setStatus(status) {
+				this.get('#status').innerText = Water.LABELS[status];
+			}
+		}
 
-        customElements.define('h-calendar-item', CalendarItem);
-        customElements.define('h-calendar', Calendar);
-        customElements.define('h-zone', Zone);
-        customElements.define('h-water', Water);
+		customElements.define('h-calendar-item', CalendarItem);
+		customElements.define('h-calendar', Calendar);
+		customElements.define('h-zone', Zone);
+		customElements.define('h-water', Water);
 
-        async function loadStatus() {
-            try {
-                const result = await fetch(STATUS_URL);
-                if (result.status !== 200) {
-                    throw new Error();
-                }
-                return await result.json();
-            } catch (e) {
-                alert(`Failed to load ${STATUS_URL}`);
-            }
-        }
+		async function loadStatus() {
+			try {
+				const result = await fetch(STATUS_URL);
+				if (result.status !== 200) {
+					throw new Error();
+				}
+				return await result.json();
+			} catch (e) {
+				alert(`Failed to load ${STATUS_URL}`);
+			}
+		}
 
-        async function loadConfig() {
-            try {
-                const result = await fetch(CONFIG_URL);
-                if (result.status !== 200) {
-                    throw new Error();
-                }
-                return await result.json();
-            } catch (e) {
-                alert(`Failed to load ${CONFIG_URL}`);
-            }
-        }
+		async function loadConfig() {
+			try {
+				const result = await fetch(CONFIG_URL);
+				if (result.status !== 200) {
+					throw new Error();
+				}
+				return await result.json();
+			} catch (e) {
+				alert(`Failed to load ${CONFIG_URL}`);
+			}
+		}
 
-        async function saveConfig(config) {
-            try {
-                const result = await fetch(CONFIG_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(config),
-                });
-                if (result.status !== 200) {
-                    throw new Error();
-                }
-            } catch (e) {
-                alert(`Failed to post to ${CONFIG_URL}`);
-            }
-        }
+		async function saveConfig(config) {
+			try {
+				const result = await fetch(CONFIG_URL, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(config),
+				});
+				if (result.status !== 200) {
+					throw new Error();
+				}
+			} catch (e) {
+				alert(`Failed to post to ${CONFIG_URL}`);
+			}
+		}
 
-        (async () => {
-            const zone1 = document.querySelector('#zone1');
-            const zone2 = document.querySelector('#zone2');
-            const water = document.querySelector('#water');
-            const btnSave = document.querySelector('#btn-save');
+		(async () => {
+			const zone1 = document.querySelector('#zone1');
+			const zone2 = document.querySelector('#zone2');
+			const water = document.querySelector('#water');
+			const btnSave = document.querySelector('#btn-save');
 
-            let statusTimeout;
-            const updateStatus = async () => {
-                const status = await loadStatus();
+			let statusTimeout;
+			const updateStatus = async () => {
+				const status = await loadStatus();
 
-                zone1.setStatus(status.zone1);
-                zone2.setStatus(status.zone2);
-                water.setStatus(status.water);
+				zone1.setStatus(status.zone1);
+				zone2.setStatus(status.zone2);
+				water.setStatus(status.water);
 
-                clearTimeout(statusTimeout);
-                statusTimeout = setTimeout(updateStatus, 10000);
-            };
+				clearTimeout(statusTimeout);
+				statusTimeout = setTimeout(updateStatus, 10000);
+			};
 
-            btnSave.addEventListener('click', () => {
-                saveConfig({
-                    zone1: zone1.getValue(),
-                    zone2: zone2.getValue(),
-                    water: water.getValue(),
-                });
+			btnSave.addEventListener('click', () => {
+				saveConfig({
+					zone1: zone1.getValue(),
+					zone2: zone2.getValue(),
+					water: water.getValue(),
+				});
 
-                updateStatus();
-            });
+				updateStatus();
+			});
 
-            const config = await loadConfig();
+			const config = await loadConfig();
 
-            zone1.setValue(config.zone1);
-            zone2.setValue(config.zone2);
-            water.setValue(config.water);
+			zone1.setValue(config.zone1);
+			zone2.setValue(config.zone2);
+			water.setValue(config.water);
 
-            updateStatus();
-        })();
-    </script>
+			updateStatus();
+		})();
+	</script>
 </body>
 
 </html>
