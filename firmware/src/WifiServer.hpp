@@ -10,17 +10,19 @@
 #include <time.h>
 
 #include "Config.hpp"
+#include "Controller.hpp"
 #include "constants.h"
 
 class WifiServer
 {
 private:
     Config *config;
+    Controller *ctrl;
     AsyncWebServer server = AsyncWebServer(80);
     std::function<void()> callback;
 
 public:
-    WifiServer(Config *config) : config(config) {}
+    WifiServer(Config *config, Controller *ctrl) : config(config), ctrl(ctrl) {}
 
     void onUpdate(std::function<void()> cb) {
         callback = cb;
@@ -169,6 +171,17 @@ private:
             }
             
             request->send(SPIFFS, "/index.html", "text/html");
+        });
+
+        server.on("/status.json", HTTP_GET, [this](AsyncWebServerRequest *request) {
+            if (!request->authenticate(config->auth_user(), config->auth_pass()))
+            {
+                return request->requestAuthentication();
+            }
+
+            AsyncResponseStream *response = request->beginResponseStream("application/json");
+            ctrl->getStatus(response);
+            request->send(response);
         });
 
         server.on("/config.json", HTTP_OPTIONS, [](AsyncWebServerRequest *request) {

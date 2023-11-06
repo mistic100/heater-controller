@@ -18,6 +18,10 @@
 #define TIMEZONE "CET-1CEST,M3.5.0,M10.5.0/3"
 #define NTP_POOL "pool.ntp.org"
 
+#define KEY_ZONE1 "zone1"
+#define KEY_ZONE2 "zone2"
+#define KEY_WATER "water"
+
 #define UPDATE_INTERVAL 600000
 #define PIN_WATER D2
 #define PIN_FP1_POSITIVE D10

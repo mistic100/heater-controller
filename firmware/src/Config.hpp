@@ -72,11 +72,11 @@ public:
         }
 
         DynamicJsonDocument data(CONFIG_BUFFER);
-        JsonObject zone1_data = data.createNestedObject("zone1");
+        JsonObject zone1_data = data.createNestedObject(KEY_ZONE1);
         serialize(_zone1, zone1_data);
-        JsonObject zone2_data = data.createNestedObject("zone2");
+        JsonObject zone2_data = data.createNestedObject(KEY_ZONE2);
         serialize(_zone2, zone2_data);
-        JsonObject water_data = data.createNestedObject("water");
+        JsonObject water_data = data.createNestedObject(KEY_WATER);
         serialize(_water, water_data);
 
         size_t s = serializeJson(data, file);
@@ -115,9 +115,9 @@ public:
             }
             else
             {
-                deserialize(_zone1, data["zone1"]);
-                deserialize(_zone2, data["zone2"]);
-                deserialize(_water, data["water"]);
+                deserialize(_zone1, data[KEY_ZONE1]);
+                deserialize(_zone2, data[KEY_ZONE2]);
+                deserialize(_water, data[KEY_WATER]);
             }
 
             file.close();
@@ -128,9 +128,9 @@ public:
     void set(const JsonVariant &json)
     {
         JsonObjectConst data = json.as<JsonObjectConst>();
-        deserialize(_zone1, data["zone1"]);
-        deserialize(_zone2, data["zone2"]);
-        deserialize(_water, data["water"]);
+        deserialize(_zone1, data[KEY_ZONE1]);
+        deserialize(_zone2, data[KEY_ZONE2]);
+        deserialize(_water, data[KEY_WATER]);
         save();
     }
 

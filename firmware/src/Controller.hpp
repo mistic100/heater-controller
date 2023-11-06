@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ArduinoJson.h>
+
 #include "constants.h"
 #include "model.hpp"
 #include "Config.hpp"
@@ -8,6 +10,10 @@ class Controller
 {
 private:
     Config *config;
+
+    Mode mode_zone1 = OFF;
+    Mode mode_zone2 = OFF;
+    Mode mode_water = OFF;
 
 public:
     Controller(Config *config) : config(config)
@@ -26,18 +32,27 @@ public:
 
         info("Update zone 1");
         Zone zone1 = config->zone1();
-        Mode mode1 = getMode(zone1, time);
-        apply(PIN_FP1_POSITIVE, PIN_FP1_NEGATIVE, mode1);
+        mode_zone1 = getMode(zone1, time);
+        apply(PIN_FP1_POSITIVE, PIN_FP1_NEGATIVE, mode_zone1);
 
         info("Update zone 2");
         Zone zone2 = config->zone2();
-        Mode mode2 = getMode(zone2, time);
-        apply(PIN_FP2_POSITIVE, PIN_FP2_NEGATIVE, mode2);
+        mode_zone2 = getMode(zone2, time);
+        apply(PIN_FP2_POSITIVE, PIN_FP2_NEGATIVE, mode_zone2);
 
         info("Update water");
         Water water = config->water();
-        Mode modeWater = getMode(water, time);
-        apply(PIN_WATER, modeWater);
+        mode_water = getMode(water, time);
+        apply(PIN_WATER, mode_water);
+    }
+
+    void getStatus(Print* output) const
+    {
+        StaticJsonDocument<96> status;
+        status[KEY_ZONE1] = modeToStr(mode_zone1);
+        status[KEY_ZONE2] = modeToStr(mode_zone2);
+        status[KEY_WATER] = modeToStr(mode_water);
+        serializeJson(status, *output);
     }
 
 private:

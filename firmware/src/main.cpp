@@ -7,8 +7,8 @@
 #include "Controller.hpp"
 
 Config config;
-WifiServer server(&config);
 Controller ctrl(&config);
+WifiServer server(&config, &ctrl);
 bool ap_mode = false;
 
 void setup()

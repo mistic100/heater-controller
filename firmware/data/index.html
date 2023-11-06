@@ -99,6 +99,7 @@
         <div class="card shadow mb-3">
             <div class="card-body">
                 <h4 class="card-title" id="title"></h4>
+                <div class="badge rounded-pill text-bg-primary position-absolute" style="top: 1em; right: 1em;" id="status"></div>
 
                 <div class="btn-group d-flex mb-3">
                     <input type="radio" class="btn-check" name="mode" value="auto" id="mode-auto" checked>
@@ -131,6 +132,7 @@
         <div class="card shadow mb-3">
             <div class="card-body">
                 <h4 class="card-title" id="title"></h4>
+                <div class="badge rounded-pill text-bg-primary position-absolute" style="top: 1em; right: 1em;" id="status"></div>
 
                 <div class="btn-group d-flex mb-3">
                     <input type="radio" class="btn-check" name="mode" value="auto" id="mode-auto" checked>
@@ -148,6 +150,7 @@
 
     <script type="module">
         const CONFIG_URL = '/config.json';
+        const STATUS_URL = '/status.json';
 
         class AbstractElement extends HTMLElement {
             constructor(templateId) {
@@ -204,10 +207,10 @@
 
         class Calendar extends AbstractElement {
             static COLORS = {
-                'on': 'bg-warning',
-                'eco': 'bg-primary',
-                'gel': 'bg-info',
-                'off': 'bg-secondary',
+                on: 'bg-warning',
+                eco: 'bg-primary',
+                gel: 'bg-info',
+                off: 'bg-secondary',
             };
 
             constructor() {
@@ -260,6 +263,13 @@
         }
 
         class Zone extends AbstractElement {
+            static LABELS = {
+                on: 'Confort',
+                eco: 'Éco',
+                gel: 'Hors gel',
+                off: 'Arrêt',
+            };
+
             constructor() {
                 super('zone');
                 this.get('#title').innerText = this.getAttribute('title');
@@ -282,9 +292,18 @@
                 this.weekday.setValue(weekday);
                 this.weekend.setValue(weekend);
             }
+
+            setStatus(status) {
+                this.get('#status').innerText = Zone.LABELS[status];
+            }
         }
 
         class Water extends AbstractElement {
+            static LABELS = {
+                on: 'Chauffe',
+                off: 'Arrêt',
+            };
+
             constructor() {
                 super('water');
                 this.get('#title').innerText = this.getAttribute('title');
@@ -304,6 +323,10 @@
                 this.get(`[name=mode][value=${mode}]`).checked = true;
                 this.week.setValue(week);
             }
+
+            setStatus(status) {
+                this.get('#status').innerText = Water.LABELS[status];
+            }
         }
 
         customElements.define('h-calendar-item', CalendarItem);
@@ -311,7 +334,19 @@
         customElements.define('h-zone', Zone);
         customElements.define('h-water', Water);
 
-        async function loadData() {
+        async function loadStatus() {
+            try {
+                const result = await fetch(STATUS_URL);
+                if (result.status !== 200) {
+                    throw new Error();
+                }
+                return await result.json();
+            } catch (e) {
+                alert(`Failed to load ${STATUS_URL}`);
+            }
+        }
+
+        async function loadConfig() {
             try {
                 const result = await fetch(CONFIG_URL);
                 if (result.status !== 200) {
@@ -323,12 +358,12 @@
             }
         }
 
-        async function saveData(data) {
+        async function saveConfig(config) {
             try {
                 const result = await fetch(CONFIG_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data),
+                    body: JSON.stringify(config),
                 });
                 if (result.status !== 200) {
                     throw new Error();
@@ -344,19 +379,35 @@
             const water = document.querySelector('#water');
             const btnSave = document.querySelector('#btn-save');
 
+            let statusTimeout;
+            const updateStatus = async () => {
+                const status = await loadStatus();
+
+                zone1.setStatus(status.zone1);
+                zone2.setStatus(status.zone2);
+                water.setStatus(status.water);
+
+                clearTimeout(statusTimeout);
+                statusTimeout = setTimeout(updateStatus, 10000);
+            };
+
             btnSave.addEventListener('click', () => {
-                saveData({
+                saveConfig({
                     zone1: zone1.getValue(),
                     zone2: zone2.getValue(),
                     water: water.getValue(),
                 });
+
+                updateStatus();
             });
 
-            const data = await loadData();
+            const config = await loadConfig();
 
-            zone1.setValue(data.zone1);
-            zone2.setValue(data.zone2);
-            water.setValue(data.water);
+            zone1.setValue(config.zone1);
+            zone2.setValue(config.zone2);
+            water.setValue(config.water);
+
+            updateStatus();
         })();
     </script>
 </body>
