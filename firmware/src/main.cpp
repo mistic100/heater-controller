@@ -42,20 +42,11 @@ void setup()
     }
 }
 
-unsigned long currentMillis;
-unsigned long previousMillis = 0;
-
 void loop()
 {
     if (!ap_mode)
     {
-        currentMillis = millis();
-        if (currentMillis - previousMillis >= UPDATE_INTERVAL)
-        {
-            ctrl.update();
-            previousMillis = currentMillis;
-        }
-
+        ctrl.loop();
         ElegantOTA.loop();
     }
 }

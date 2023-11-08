@@ -15,6 +15,8 @@ private:
     Mode mode_zone2 = OFF;
     Mode mode_water = OFF;
 
+    unsigned long previousMillis = 0;
+
 public:
     Controller(Config *config) : config(config)
     {
@@ -23,6 +25,16 @@ public:
         pinMode(PIN_FP1_POSITIVE, OUTPUT);
         pinMode(PIN_FP2_NEGATIVE, OUTPUT);
         pinMode(PIN_FP2_POSITIVE, OUTPUT);
+    }
+
+    void loop()
+    {
+        unsigned long currentMillis = millis();
+        if (currentMillis - previousMillis >= UPDATE_INTERVAL)
+        {
+            update();
+            previousMillis = currentMillis;
+        }
     }
 
     void update()

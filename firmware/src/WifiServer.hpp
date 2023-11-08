@@ -96,8 +96,16 @@ public:
         ElegantOTA.onStart([]() {
             info("Start OTA update");
         });
-        ElegantOTA.onEnd([](bool success) {
-            success ? info("OTA update success") : error("OTA update failed");
+        ElegantOTA.onEnd([this](bool success) {
+            if (!success)
+            {
+                error("OTA update failed");
+            }
+            else
+            {
+                info("OTA update success");
+                config->saveAll(); // persist config files
+            }
         });
     }
 

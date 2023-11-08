@@ -192,6 +192,11 @@ public:
         return writeFileTwoLines(AUTH_CONFIG_FILE, _auth_user, _auth_pass);
     }
 
+    bool saveAll()
+    {
+        return save() && saveWifi(_wifi_ssid, _wifi_pass) && saveAuth(_auth_user, _auth_pass);
+    }
+
 private:
     void init()
     {
