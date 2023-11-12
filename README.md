@@ -21,8 +21,9 @@ It can control two separate electric heaters with four orders (Confort, Éco, Ho
 - LM2596 step down regulator
 - 5x MOC3041 triac driver
 - 4x 1N4007 diode
-- 1x 1N4141 diode
+- 1x 1N4148 diode
 - 5x resistors
 - 250V fuse
 - terminals
-- M3 screws and heated inserts
+- M3 screws, spacers and heated inserts
+- 3D printed case
