@@ -96,7 +96,7 @@ private:
 
     const Mode getMode(const std::vector<TimeItem> &timetable, int hour) const
     {
-        for (size_t i = timetable.size() - 1; i > 0; i--)
+        for (size_t i = timetable.size() - 1; i >= 0; i--)
         {
             if (hour >= timetable[i].hour)
             {
