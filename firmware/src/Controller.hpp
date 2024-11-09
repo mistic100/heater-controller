@@ -16,6 +16,7 @@ private:
     Mode mode_water = OFF;
 
     unsigned long previousMillis = 0;
+    bool needsUpdate = false;
 
 public:
     Controller(Config *config) : config(config)
@@ -27,16 +28,37 @@ public:
         pinMode(PIN_FP2_POSITIVE, OUTPUT);
     }
 
+    void init()
+    {
+        needsUpdate = true;
+    }
+
     void loop()
     {
         unsigned long currentMillis = millis();
-        if (currentMillis - previousMillis >= UPDATE_INTERVAL)
+        if (needsUpdate || (currentMillis - previousMillis >= UPDATE_INTERVAL))
         {
             update();
             previousMillis = currentMillis;
+            needsUpdate = false;
         }
     }
 
+    void willUpdate()
+    {
+        needsUpdate = true;
+    }
+
+    void getStatus(Print* output) const
+    {
+        JsonDocument status;
+        status[KEY_ZONE1] = modeToStr(mode_zone1);
+        status[KEY_ZONE2] = modeToStr(mode_zone2);
+        status[KEY_WATER] = modeToStr(mode_water);
+        serializeJson(status, *output);
+    }
+
+private:
     void update()
     {
         struct tm time;
@@ -58,16 +80,6 @@ public:
         apply(PIN_WATER, mode_water);
     }
 
-    void getStatus(Print* output) const
-    {
-        StaticJsonDocument<96> status;
-        status[KEY_ZONE1] = modeToStr(mode_zone1);
-        status[KEY_ZONE2] = modeToStr(mode_zone2);
-        status[KEY_WATER] = modeToStr(mode_water);
-        serializeJson(status, *output);
-    }
-
-private:
     const Mode getMode(const Zone &zone, const struct tm &time) const
     {
         debug("Mode", modeToStr(zone.mode));

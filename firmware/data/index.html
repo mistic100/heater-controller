@@ -381,13 +381,14 @@
 
 			let statusTimeout;
 			const updateStatus = async () => {
+				clearTimeout(statusTimeout);
+
 				const status = await loadStatus();
 
 				zone1.setStatus(status.zone1);
 				zone2.setStatus(status.zone2);
 				water.setStatus(status.water);
 
-				clearTimeout(statusTimeout);
 				statusTimeout = setTimeout(updateStatus, 10000);
 			};
 
@@ -398,7 +399,7 @@
 					water: water.getValue(),
 				});
 
-				updateStatus();
+				setTimeout(updateStatus, 1000);
 			});
 
 			const config = await loadConfig();

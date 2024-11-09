@@ -3,7 +3,6 @@
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
 #include <ElegantOTA.h>
-#include <AsyncTCP.h>
 #include <AsyncJson.h>
 #include <ArduinoJson.h>
 #include <ESPmDNS.h>
@@ -132,7 +131,7 @@ private:
     void serveAP()
     {
         server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) { 
-            request->send(SPIFFS, "/wifimanager.html", "text/html");
+            request->send(LittleFS, "/wifimanager.html", "text/html");
         });
 
         server.on("/", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -142,7 +141,7 @@ private:
             int params = request->params();
             for (int i=0; i<params; i++)
             {
-                AsyncWebParameter* p = request->getParam(i);
+                const AsyncWebParameter* p = request->getParam(i);
                 if (p->isPost())
                 {
                     if (p->name() == "ssid") ssid = p->value().c_str();
@@ -173,7 +172,7 @@ private:
                 return request->requestAuthentication();
             }
             
-            request->send(SPIFFS, "/index.html", "text/html");
+            request->send(LittleFS, "/index.html", "text/html");
         });
 
         server.on("/status.json", HTTP_GET, [this](AsyncWebServerRequest *request) {
@@ -200,7 +199,7 @@ private:
                 return request->requestAuthentication();
             }
             
-            request->send(SPIFFS, CONFIG_FILE, "application/json");
+            request->send(LittleFS, CONFIG_FILE, "application/json");
         });
 
         server.on("/settings/auth", HTTP_POST, [this](AsyncWebServerRequest *request) {
@@ -215,7 +214,7 @@ private:
             int params = request->params();
             for (int i=0; i<params; i++)
             {
-                AsyncWebParameter* p = request->getParam(i);
+                const AsyncWebParameter* p = request->getParam(i);
                 if (p->isPost())
                 {
                     if (p->name() == "user") user = p->value().c_str();
@@ -243,8 +242,8 @@ private:
             config->set(json);
             request->send(200);
 
-            ctrl->update();
-        }, CONFIG_BUFFER));
+            ctrl->willUpdate();
+        }));
 
         server.begin();
     }

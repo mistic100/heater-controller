@@ -6,7 +6,6 @@
 #define AUTH_CONFIG_FILE "/auth.txt"
 #define WIFI_CONFIG_FILE "/wifi.txt"
 #define CONFIG_FILE "/config.json"
-#define CONFIG_BUFFER 2048
 
 #define AUTH_DEFAULT_USER "admin"
 #define AUTH_DEFAULT_PASS "admin"
@@ -22,7 +21,7 @@
 #define KEY_ZONE2 "zone2"
 #define KEY_WATER "water"
 
-#define UPDATE_INTERVAL 600000
+#define UPDATE_INTERVAL 10 * 60 * 1000
 #define PIN_WATER D1
 #define PIN_FP1_POSITIVE D3
 #define PIN_FP1_NEGATIVE D2

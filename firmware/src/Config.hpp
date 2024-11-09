@@ -1,10 +1,11 @@
 #pragma once
 
 #include <ArduinoJson.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
 
 #include "constants.h"
 #include "model.hpp"
+#include "utils.hpp"
 
 typedef struct
 {
@@ -64,19 +65,19 @@ public:
 
     bool save()
     {
-        File file = SPIFFS.open(CONFIG_FILE, FILE_WRITE);
+        File file = LittleFS.open(CONFIG_FILE, FILE_WRITE);
         if (!file)
         {
             error("Failed to open config file for writing");
             return false;
         }
 
-        DynamicJsonDocument data(CONFIG_BUFFER);
-        JsonObject zone1_data = data.createNestedObject(KEY_ZONE1);
+        JsonDocument data;
+        JsonObject zone1_data = data[KEY_ZONE1].to<JsonObject>();
         serialize(_zone1, zone1_data);
-        JsonObject zone2_data = data.createNestedObject(KEY_ZONE2);
+        JsonObject zone2_data = data[KEY_ZONE2].to<JsonObject>();
         serialize(_zone2, zone2_data);
-        JsonObject water_data = data.createNestedObject(KEY_WATER);
+        JsonObject water_data = data[KEY_WATER].to<JsonObject>();
         serialize(_water, water_data);
 
         size_t s = serializeJson(data, file);
@@ -96,7 +97,7 @@ public:
 
     bool load()
     {
-        File file = SPIFFS.open(CONFIG_FILE);
+        File file = LittleFS.open(CONFIG_FILE);
         if (!file || file.size() == 0)
         {
             info("config file not found, creating a new one");
@@ -107,7 +108,7 @@ public:
         {
             info("Read config file");
 
-            DynamicJsonDocument data(CONFIG_BUFFER);
+            JsonDocument data;
             auto nok = deserializeJson(data, file);
             if (nok)
             {
@@ -235,16 +236,16 @@ private:
     void serialize(const Zone &zone, JsonObject &data)
     {
         data["mode"] = modeToStr(zone.mode);
-        JsonArray weekday_data = data.createNestedArray("weekday");
+        JsonArray weekday_data = data["weekday"].to<JsonArray>();
         serialize(zone.weekday, weekday_data);
-        JsonArray weekend_data = data.createNestedArray("weekend");
+        JsonArray weekend_data = data["weekend"].to<JsonArray>();
         serialize(zone.weekend, weekend_data);
     }
 
     void serialize(const Water &water, JsonObject &data)
     {
         data["mode"] = modeToStr(water.mode);
-        JsonArray week_data = data.createNestedArray("week");
+        JsonArray week_data = data["week"].to<JsonArray>();
         serialize(water.week, week_data);
     }
 
@@ -261,7 +262,7 @@ private:
     {
         debug("Read file", path);
 
-        File file = SPIFFS.open(path);
+        File file = LittleFS.open(path);
         if (!file || file.size() == 0)
         {
             info("File not found");
@@ -285,7 +286,7 @@ private:
     {
         debug("Write file", path);
 
-        File file = SPIFFS.open(path, FILE_WRITE);
+        File file = LittleFS.open(path, FILE_WRITE);
         if (!file)
         {
             error("Failed to open file for writing");

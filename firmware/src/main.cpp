@@ -1,5 +1,6 @@
 #include <Arduino.h>
-
+#include <ElegantOTA.h>
+#include <LittleFS.h>
 #include "constants.h"
 #include "utils.hpp"
 #include "Config.hpp"
@@ -17,9 +18,9 @@ void setup()
     delay(2000);
     info("Start");
 
-    if (!SPIFFS.begin(false))
+    if (!LittleFS.begin(false))
     {
-        error("Failed to init SPIFFS");
+        error("Failed to init LittleFS");
         return;
     }
 
@@ -38,7 +39,7 @@ void setup()
     {
         config.load();
         server.init();
-        ctrl.update();
+        ctrl.init();
     }
 }
 
